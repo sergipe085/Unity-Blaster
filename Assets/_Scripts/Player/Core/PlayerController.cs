@@ -17,6 +17,16 @@ public class PlayerController : NetworkBehaviour
     [Header("SETTINGS")]
     [SerializeField] private MoverSettings moverSettings;
 
+    [Header("UI")]
+    [SerializeField] private OverheadUI overheadUI = null;
+
+    [Header("MODEL")]
+    [SerializeField] private Transform model = null;
+
+    public override void OnNetworkSpawn() {
+        SetNetworkRoleUI();
+    }
+
     private void Start() {
         if (IsOwner) {
             InitializeInput();
@@ -30,6 +40,26 @@ public class PlayerController : NetworkBehaviour
         if (!IsOwner) return;
 
         playerInput?.CheckInput();
+    }
+
+    private void SetNetworkRoleUI() {
+        string networkRole = "";
+
+        // Se for server = Authority
+        // Se for client e for owned = Autonomous Proxy
+        // Se for client e nao for owner = Simulated Proxy
+
+        if (IsServer) {
+            networkRole = "Authority";
+        }
+        else if (IsOwner) {
+            networkRole = "Autonomous Proxy";
+        }
+        else {
+            networkRole = "Simulated Proxy";
+        }
+
+        overheadUI.SetNetworkRoleText(networkRole);
     }
 
     private void InitializeComponents() {
@@ -56,5 +86,6 @@ public class PlayerController : NetworkBehaviour
     private void Handle_PlayerInput_OnLookEvent(Vector2 lookInput) {
         //Look Camera
         lookCamera.ApplyLook(lookInput);
+        model.transform.forward = lookCamera.GetForwardVector();
     }    
 }
