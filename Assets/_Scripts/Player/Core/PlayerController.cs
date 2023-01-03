@@ -43,11 +43,15 @@ public class PlayerController : NetworkBehaviour
     }
 
     private void SetNetworkRoleUI() {
-        string networkRole = "";
+        overheadUI.SetNetworkRoleText(GetNetworkRole());
+    }
 
+    private string GetNetworkRole() {
         // Se for server = Authority
         // Se for client e for owned = Autonomous Proxy
         // Se for client e nao for owner = Simulated Proxy
+
+        string networkRole;
 
         if (IsServer) {
             networkRole = "Authority";
@@ -59,7 +63,7 @@ public class PlayerController : NetworkBehaviour
             networkRole = "Simulated Proxy";
         }
 
-        overheadUI.SetNetworkRoleText(networkRole);
+        return networkRole;
     }
 
     private void InitializeComponents() {
