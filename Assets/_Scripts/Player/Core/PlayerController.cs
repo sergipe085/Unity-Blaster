@@ -15,10 +15,13 @@ namespace Blaster.Player.Core
         [Header("COMPONENTS")]
         [SerializeField] private LookCamera lookCamera = null;
         [SerializeField] private Rigidbody rig = null;
-        private Mover mover = null;
+        private Mover            mover            = null;
+        private PlayerInteract   playerInteract   = null;
+        private PlayerInteractUI playerInteractUI = null;
 
         [Header("SETTINGS")]
         [SerializeField] private MoverSettings moverSettings;
+        [SerializeField] private PlayerInteractSettings playerInteractSettings;
 
         [Header("UI")]
         [SerializeField] private OverheadUI overheadUI = null;
@@ -46,7 +49,12 @@ namespace Blaster.Player.Core
         }
 
         private void SetNetworkRoleUI() {
-            overheadUI.SetNetworkRoleText(GetNetworkRole());
+            if (!IsOwner) {
+                overheadUI.SetNetworkRoleText(GetNetworkRole());
+            }
+            else {
+                Destroy(overheadUI.gameObject);
+            }
         }
 
         private string GetNetworkRole() {
@@ -71,12 +79,15 @@ namespace Blaster.Player.Core
 
         private void InitializeComponents() {
             mover = new Mover(rig, moverSettings);
+            playerInteract = new PlayerInteract(playerInteractSettings);
+            playerInteractUI = new PlayerInteractUI(playerInteract);
         }
 
         private void InitializeInput() {
             playerInput = new PlayerInput();
-            playerInput.OnMoveEvent += Handle_PlayerInput_OnMoveEvent;
-            playerInput.OnLookEvent += Handle_PlayerInput_OnLookEvent;
+            playerInput.OnMoveEvent     += Handle_PlayerInput_OnMoveEvent;
+            playerInput.OnLookEvent     += Handle_PlayerInput_OnLookEvent;
+            playerInput.OnInteractEvent += Handle_PlayerInput_OnInteractEvent;
         }
 
         private void SetupCursor() {
@@ -86,14 +97,18 @@ namespace Blaster.Player.Core
 
         private void Handle_PlayerInput_OnMoveEvent(Vector2 moveInput) {
             //Move Player
-            Debug.Log(moveInput);
-            mover.Move(moveInput, lookCamera.GetForwardVector());
+            mover.Move(moveInput, lookCamera.GetMovementForwardVector());
         }  
 
         private void Handle_PlayerInput_OnLookEvent(Vector2 lookInput) {
             //Look Camera
             lookCamera.ApplyLook(lookInput);
-            model.transform.forward = lookCamera.GetForwardVector();
+            model.transform.forward = lookCamera.GetMovementForwardVector();
+            playerInteract.CheckInteracting(lookCamera.GetPosition(), lookCamera.GetForwardVector());
         }    
+
+        private void Handle_PlayerInput_OnInteractEvent() {
+            playerInteract.Interact(lookCamera.GetPosition(), lookCamera.GetForwardVector());
+        }
     }
 }

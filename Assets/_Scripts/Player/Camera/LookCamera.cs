@@ -35,8 +35,16 @@ namespace Blaster.Player.Core
             horizontalCamera.transform.Rotate(new Vector3(0f, offset, 0f));
         }
 
-        public Vector3 GetForwardVector() {
+        public Vector3 GetMovementForwardVector() {
             return Quaternion.Euler(0f, currentLook.x, 0f) * Vector3.forward;
+        }
+
+        public Vector3 GetForwardVector() {
+            return cameraSocket.forward;
+        }
+
+        public Vector3 GetPosition() {
+            return transform.position;
         }
     }
 }
